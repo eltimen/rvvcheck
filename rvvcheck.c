@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,9 +39,22 @@ void check_rvv10() {
     puts("rvv1.0");
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    bool verbose = false;
+    int opt;
+    while((opt = getopt(argc, argv, "v")) != -1) {
+        switch (opt) {
+            case 'v': 
+                verbose = true;
+                break;
+            default:
+                fprintf(stderr, "Usage: %s [-v]\n", argv[0]);
+                exit(EXIT_FAILURE);
+        }
+    }
+
     void (*check_funcs[])() = {check_scalar, check_rvv071, check_rvv10};
-    size_t n_funcs = sizeof(check_funcs) / sizeof(check_funcs[0]);
+    const size_t n_funcs = sizeof(check_funcs) / sizeof(check_funcs[0]);
     pid_t pids[n_funcs];
 
     for (size_t i = 0; i < n_funcs; ++i) {
@@ -57,10 +71,12 @@ int main() {
     for (size_t i = n_funcs; i > 0; --i) {
         int status;
         pid_t pid = wait(&status);
-        if (WIFSIGNALED(status)) {
-            printf("Child #%d PID %d exited with signal %s\n", i, pid, strsignal(WTERMSIG(status)));
-        } else {
-            printf("Child #%d PID %d exited with status %d\n", i, pid, status);
+        if (verbose) {
+            if (WIFSIGNALED(status)) {
+                printf("Child #%d PID %d exited with signal %s\n", i, pid, strsignal(WTERMSIG(status)));
+            } else {
+                printf("Child #%d PID %d exited with status %d\n", i, pid, status);
+            }
         }
     }
 
