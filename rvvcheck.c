@@ -40,11 +40,12 @@ void check_rvv10() {
 }
 
 int main(int argc, char *argv[]) {
+    int exit_code = EXIT_SUCCESS;
     bool verbose = false;
     int opt;
     while((opt = getopt(argc, argv, "v")) != -1) {
         switch (opt) {
-            case 'v': 
+            case 'v':
                 verbose = true;
                 break;
             default:
@@ -64,21 +65,32 @@ int main(int argc, char *argv[]) {
             abort();
         } else if (pids[i] == 0) {
             check_funcs[i]();
-            exit(0);
+            exit(EXIT_SUCCESS);
         }
     }
 
     for (size_t i = n_funcs; i > 0; --i) {
         int status;
         pid_t pid = wait(&status);
-        if (verbose) {
-            if (WIFSIGNALED(status)) {
-                printf("Child #%d PID %d exited with signal %s\n", i, pid, strsignal(WTERMSIG(status)));
-            } else {
-                printf("Child #%d PID %d exited with status %d\n", i, pid, status);
+
+        if (WIFSIGNALED(status)) {
+            if (verbose) {
+                printf("Child #%zu PID %d exited with signal %s\n", i, pid, strsignal(WTERMSIG(status)));
+            }
+            if (WTERMSIG(status) != SIGILL) {
+                printf("Error: expected exit code 0 or SIGILL for child #%zu, but it exited with signal %s\n", i, strsignal(WTERMSIG(status)));
+                exit_code = EXIT_FAILURE;
+            }
+        } else {
+            if (verbose) {
+                printf("Child #%zu PID %d exited with status %d\n", i, pid, status);
+            }
+            if (status != 0) {
+                printf("Error: expected exit code 0 or SIGILL for child #%zu, but it exited with status %d\n", i, status);
+                exit_code = EXIT_FAILURE;
             }
         }
     }
 
-    return 0;
+    return exit_code;
 }
