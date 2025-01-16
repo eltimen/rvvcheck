@@ -3,11 +3,11 @@
 A simple Pure C (+ some inline assembly) program to check if the RISC-V CPU supports the specified extensions or instructions (RVV 0.7.1 and 1.0).  
 It uses `fork()` to launch the check functions (specified inside the `check_funcs` array) in the separate processes and checks if the assembly code snippet in these functions has crashed with `SIGILL` or not.
 
-# How to build on real hardware
+## How to build on real hardware
 
 `gcc -o rvvcheck rvvcheck.c`
 
-# How to build using cross-compiler toolchain
+## How to build using cross-compiler toolchain
 You need to download RISC-V toolchain (e.g., [riscv-gnu-toolchain](https://github.com/riscv-collab/riscv-gnu-toolchain/releases/tag/2024.08.03))
 
 ### Build:
